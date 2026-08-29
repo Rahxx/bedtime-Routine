@@ -1,0 +1,9 @@
+{
+  "name": "Bedtime Routine",
+  "short_name": "Bedtime",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "description": "A simple accessible bedtime routine app."
+}

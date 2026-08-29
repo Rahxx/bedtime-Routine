@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Bedtime">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg">
+  <title>Bedtime Routine</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #000;
+      --panel: #121212;
+      --text: #fff;
+      --muted: #c7c7c7;
+      --line: #404040;
+      --focus: #ffd60a;
+      --good: #34c759;
+      --skip: #ff9f0a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 20px;
+      line-height: 1.4;
+    }
+    main { max-width: 680px; margin: 0 auto; padding: 24px 18px 48px; }
+    h1 { font-size: 34px; margin: 0 0 22px; }
+    h2 { font-size: 30px; margin: 0 0 14px; }
+    p { margin: 0 0 18px; color: var(--muted); }
+    label { display: block; font-weight: 700; margin-bottom: 10px; }
+    input, button {
+      font: inherit;
+      border-radius: 14px;
+    }
+    input[type="time"], input[type="text"] {
+      width: 100%;
+      min-height: 58px;
+      padding: 12px 14px;
+      background: #1c1c1e;
+      color: #fff;
+      border: 2px solid var(--line);
+      margin-bottom: 18px;
+    }
+    button {
+      width: 100%;
+      min-height: 62px;
+      padding: 12px 16px;
+      margin: 8px 0;
+      border: 2px solid var(--line);
+      background: #1c1c1e;
+      color: #fff;
+      font-weight: 700;
+    }
+    button:focus, input:focus {
+      outline: 4px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .primary { border-color: var(--good); }
+    .skip { border-color: var(--skip); }
+    .secondary { color: var(--muted); }
+    .task {
+      padding: 22px;
+      background: var(--panel);
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      margin: 18px 0;
+    }
+    .progress { font-size: 18px; color: var(--muted); margin-bottom: 8px; }
+    .time-left { font-size: 22px; color: #fff; margin: 12px 0 18px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .task-edit {
+      border-top: 1px solid var(--line);
+      padding: 16px 0;
+    }
+    .task-edit:first-child { border-top: 0; }
+    .small-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .small-row button { min-height: 50px; font-size: 17px; }
+    .hidden { display: none !important; }
+    .status {
+      position: absolute;
+      left: -10000px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <section id="setup">
+    <h1>Bedtime Routine</h1>
+    <label for="bedtime">What time do you want to go to bed?</label>
+    <input id="bedtime" type="time" aria-describedby="bedtimeHelp">
+    <p id="bedtimeHelp">If the chosen time has already passed today, it will be treated as tomorrow.</p>
+    <button id="startBtn" class="primary">Start routine</button>
+    <button id="editBtn" class="secondary">Edit tasks</button>
+  </section>
+
+  <section id="routine" class="hidden" aria-labelledby="taskHeading">
+    <div class="progress" id="progress"></div>
+    <div class="task">
+      <h2 id="taskHeading"></h2>
+      <div class="time-left" id="timeLeft"></div>
+      <button id="doneBtn" class="primary">Done</button>
+      <button id="skipBtn" class="skip">Skip</button>
+    </div>
+    <button id="stopBtn" class="secondary">End routine</button>
+  </section>
+
+  <section id="complete" class="hidden">
+    <h1>Routine complete</h1>
+    <p id="completeText"></p>
+    <button id="againBtn" class="primary">Start again</button>
+  </section>
+
+  <section id="editor" class="hidden">
+    <h1>Edit tasks</h1>
+    <div id="taskList"></div>
+    <label for="newTask">Add a task</label>
+    <input id="newTask" type="text" autocomplete="off">
+    <button id="addTaskBtn" class="primary">Add task</button>
+    <button id="saveTasksBtn">Done editing</button>
+  </section>
+
+  <div id="live" class="status" aria-live="assertive" aria-atomic="true"></div>
+</main>
+
+<script>
+(() => {
+  const DEFAULT_TASKS = [
+    "Close shutters and check doors and gate are locked",
+    "Turn on sauna",
+    "Load and start washing machine",
+    "Clean coffee machine",
+    "Clean sink and load dishwasher",
+    "Take out rubbish and change bin bag",
+    "Turn on jug",
+    "Refresh Tamara’s water",
+    "Give Tamara her greenie",
+    "Toilet Tamara",
+    "Make a cup of tea",
+    "Turn off heater, TV, radio and lights",
+    "Pack work, judo and gym bag",
+    "Use sauna",
+    "Shower and brush teeth",
+    "Jump into bed"
+];
+
+  let tasks = loadTasks();
+  let queue = [];
+  let currentIndex = 0;
+  let bedtimeDate = null;
+  let saunaReady = null;
+
+  const $ = id => document.getElementById(id);
+  const screens = ["setup", "routine", "complete", "editor"];
+
+  function show(id) {
+    screens.forEach(s => $(s).classList.toggle("hidden", s !== id));
+    setTimeout(() => {
+      const heading = $(id).querySelector("h1,h2,input,button");
+      if (heading) heading.focus?.();
+    }, 50);
+  }
+
+  function loadTasks() {
+    try {
+      const saved = JSON.parse(localStorage.getItem("bedtimeTasks") || "null");
+      return Array.isArray(saved) && saved.length ? saved : [...DEFAULT_TASKS];
+    } catch { return [...DEFAULT_TASKS]; }
+  }
+
+  function saveTasks() {
+    localStorage.setItem("bedtimeTasks", JSON.stringify(tasks));
+  }
+
+  function speak(text) {
+    $("live").textContent = "";
+    setTimeout(() => $("live").textContent = text, 20);
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.95;
+      window.speechSynthesis.speak(u);
+    }
+  }
+
+  function resolveBedtime(value) {
+    const [h, m] = value.split(":").map(Number);
+    const now = new Date();
+    const target = new Date(now);
+    target.setHours(h, m, 0, 0);
+    if (target <= now) target.setDate(target.getDate() + 1);
+    return target;
+  }
+
+  function remainingText() {
+    if (!bedtimeDate) return "";
+    const ms = bedtimeDate - new Date();
+    const mins = Math.max(0, Math.ceil(ms / 60000));
+    if (mins === 0) return "It is bedtime now.";
+    if (mins === 1) return "1 minute remaining until bedtime.";
+    return `${mins} minutes remaining until bedtime.`;
+  }
+
+  function currentTask() { return queue[currentIndex] || null; }
+
+  function announceTask() {
+    const task = currentTask();
+    if (!task) return finishRoutine();
+
+    // If Turn on sauna was skipped, Use sauna disappears automatically.
+    if (task.toLowerCase() === "use sauna" && saunaReady === false) {
+      currentIndex++;
+      return announceTask();
+    }
+
+    $("taskHeading").textContent = task;
+    $("progress").textContent = `Task ${currentIndex + 1} of ${queue.length}`;
+    $("timeLeft").textContent = remainingText();
+    speak(`${task}. ${remainingText()}`);
+    setTimeout(() => $("doneBtn").focus(), 50);
+  }
+
+  function advance(result) {
+    const task = currentTask();
+    if (!task) return;
+
+    if (task.toLowerCase() === "turn on sauna") {
+      saunaReady = result === "done";
+    }
+
+    const time = remainingText();
+    speak(time);
+    currentIndex++;
+    setTimeout(announceTask, 500);
+  }
+
+  function finishRoutine() {
+    const text = remainingText();
+    $("completeText").textContent = text || "All tasks are complete.";
+    show("complete");
+    speak(`Routine complete. ${text}`);
+  }
+
+  $("startBtn").addEventListener("click", () => {
+    try {
+      const value = $("bedtime").value;
+      if (!value) {
+        speak("Choose a bedtime first.");
+        $("bedtime").focus();
+        return;
+      }
+      bedtimeDate = resolveBedtime(value);
+      queue = [...tasks];
+      currentIndex = 0;
+      saunaReady = null;
+      show("routine");
+      announceTask();
+    } catch (err) {
+      alert("The routine could not start: " + (err && err.message ? err.message : err));
+    }
+  });
+
+  $("doneBtn").addEventListener("click", () => advance("done"));
+  $("skipBtn").addEventListener("click", () => advance("skip"));
+  $("stopBtn").addEventListener("click", () => { if ("speechSynthesis" in window) window.window.speechSynthesis.cancel(); show("setup"); });
+  $("againBtn").addEventListener("click", () => show("setup"));
+
+  $("editBtn").addEventListener("click", () => {
+    renderEditor();
+    show("editor");
+  });
+
+  function renderEditor() {
+    const root = $("taskList");
+    root.innerHTML = "";
+    tasks.forEach((task, i) => {
+      const box = document.createElement("div");
+      box.className = "task-edit";
+
+      const label = document.createElement("label");
+      label.textContent = `Task ${i + 1}`;
+      label.htmlFor = `task-${i}`;
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.id = `task-${i}`;
+      input.value = task;
+      input.addEventListener("change", e => {
+        tasks[i] = e.target.value.trim() || task;
+      });
+
+      const row = document.createElement("div");
+      row.className = "small-row";
+
+      const up = document.createElement("button");
+      up.textContent = "Move up";
+      up.disabled = i === 0;
+      up.addEventListener("click", () => {
+        [tasks[i-1], tasks[i]] = [tasks[i], tasks[i-1]];
+        renderEditor();
+      });
+
+      const down = document.createElement("button");
+      down.textContent = "Move down";
+      down.disabled = i === tasks.length - 1;
+      down.addEventListener("click", () => {
+        [tasks[i+1], tasks[i]] = [tasks[i], tasks[i+1]];
+        renderEditor();
+      });
+
+      const remove = document.createElement("button");
+      remove.textContent = "Delete";
+      remove.addEventListener("click", () => {
+        tasks.splice(i, 1);
+        renderEditor();
+      });
+
+      row.append(up, down, remove);
+      box.append(label, input, row);
+      root.append(box);
+    });
+  }
+
+  $("addTaskBtn").addEventListener("click", () => {
+    const value = $("newTask").value.trim();
+    if (!value) return;
+    tasks.push(value);
+    $("newTask").value = "";
+    renderEditor();
+    speak(`${value} added.`);
+  });
+
+  $("saveTasksBtn").addEventListener("click", () => {
+    tasks = tasks.map(t => t.trim()).filter(Boolean);
+    if (!tasks.length) tasks = [...DEFAULT_TASKS];
+    saveTasks();
+    show("setup");
+    speak("Tasks saved.");
+  });
+
+  // Default bedtime to one hour from now, rounded to the next 5 minutes.
+  const d = new Date(Date.now() + 60 * 60000);
+  d.setMinutes(Math.ceil(d.getMinutes() / 5) * 5, 0, 0);
+  $("bedtime").value = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
