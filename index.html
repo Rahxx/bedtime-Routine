@@ -309,9 +309,13 @@
 
     .preset-bedtimes {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       margin: 18px 0;
+    }
+
+    #otherTimeBtn {
+      grid-column: 1 / -1;
     }
 
     .preset-bedtimes button {
@@ -736,8 +740,20 @@
   });
 
   $("otherTimeBtn").addEventListener("click", () => {
+    const input = $("otherTimeInput");
     $("otherTimeWrap").hidden = false;
-    setTimeout(() => $("otherTimeInput").focus(), 50);
+
+    try {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+      } else {
+        input.focus();
+        input.click();
+      }
+    } catch (_) {
+      input.focus();
+      input.click();
+    }
   });
 
   $("otherTimeInput").addEventListener("change", () => {
@@ -748,7 +764,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=15").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=16").catch(() => {});
   }
 })();
 </script>
