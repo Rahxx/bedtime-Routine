@@ -384,6 +384,13 @@
       flex-shrink: 0;
     }
 
+
+/* v19 */
+#selectedBedtime{margin:12px 0 20px;text-align:center}
+.selected-bedtime-label{font-size:.82rem;font-weight:600;opacity:.78;margin-bottom:4px}
+.selected-bedtime-time{font-size:clamp(48px,14vw,76px);line-height:1;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;white-space:nowrap}
+.preset-bedtimes button,.other-time-control{border:2px solid #fff !important;box-shadow:0 0 0 1px rgba(255,255,255,.22)}
+.preset-bedtimes button:focus-visible,.other-time-control:focus-within{outline:3px solid #fff;outline-offset:3px}
 </style>
 </head>
 <body>
@@ -391,6 +398,10 @@
   <section id="setup">
     <h1>Good evening Maysa.</h1>
     <p class="bedtime-question">What time would you like to go to bed?</p>
+    <div id="selectedBedtime" class="selected-bedtime" role="status" aria-live="polite">
+      <div class="selected-bedtime-label">Selected bedtime</div>
+      <div id="selectedBedtimeTime" class="selected-bedtime-time">--:--</div>
+    </div>
     <div class="preset-bedtimes" role="group" aria-label="Choose bedtime">
       <button type="button" class="bedtime-preset" data-time="22:00">10:00 PM</button>
       <button type="button" class="bedtime-preset" data-time="22:30">10:30 PM</button>
@@ -401,7 +412,6 @@
         <input id="otherTimeInput" type="time" step="900" aria-label="Other time">
       </div>
     </div>
-    <div id="selectedBedtime" class="selected-bedtime" role="status" aria-live="polite">No bedtime selected</div>
     <button id="startBtn" class="primary">Start routine</button>
     <button id="editBtn" class="secondary">Edit tasks</button>
   </section>
@@ -768,7 +778,7 @@
   function setSelectedBedtime(date) {
     selectedBedtimeDate = date;
     const text = formatSelectedBedtime(date);
-    $("selectedBedtime").textContent = `Selected bedtime: ${text}`;
+    $("selectedBedtimeTime").textContent = text;
     $("selectedBedtime").setAttribute("aria-label", `Selected bedtime ${text}`);
   }
 
@@ -787,7 +797,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=18").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=19").catch(() => {});
   }
 })();
 </script>
