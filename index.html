@@ -306,6 +306,38 @@
       margin-bottom: 12px;
     }
 
+
+    .preset-bedtimes {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .preset-bedtimes button {
+      min-height: 56px;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    #otherTimeWrap {
+      margin: 14px 0;
+    }
+
+    #otherTimeInput {
+      width: 100%;
+      min-height: 52px;
+      font-size: 1.1rem;
+      margin-top: 8px;
+      box-sizing: border-box;
+    }
+
+    #selectedBedtime {
+      margin: 14px 0 18px;
+      text-align: center;
+      font-weight: 700;
+    }
+
 </style>
 </head>
 <body>
@@ -313,10 +345,18 @@
   <section id="setup">
     <h1>Good evening Maysa.</h1>
     <p class="bedtime-question">What time would you like to go to bed?</p>
-    <div class="simple-time-picker" role="group" aria-label="Choose bedtime">
-      <div id="selectedBedtime" class="selected-bedtime" role="status" aria-live="polite">--:--</div>
-      <div class="time-adjust-buttons"><button type="button" id="add15Btn">+15 minutes</button><button type="button" id="addHourBtn">+1 hour</button></div>
+    <div class="preset-bedtimes" role="group" aria-label="Choose bedtime">
+      <button type="button" class="bedtime-preset" data-time="22:00">10:00 PM</button>
+      <button type="button" class="bedtime-preset" data-time="22:30">10:30 PM</button>
+      <button type="button" class="bedtime-preset" data-time="23:00">11:00 PM</button>
+      <button type="button" class="bedtime-preset" data-time="23:30">11:30 PM</button>
+      <button type="button" id="otherTimeBtn">Other time</button>
     </div>
+    <div id="otherTimeWrap" hidden>
+      <label for="otherTimeInput">Choose another bedtime</label>
+      <input id="otherTimeInput" type="time" step="900">
+    </div>
+    <div id="selectedBedtime" class="selected-bedtime" role="status" aria-live="polite">No bedtime selected</div>
     <button id="startBtn" class="primary">Start routine</button>
     <button id="editBtn" class="secondary">Edit tasks</button>
   </section>
@@ -558,7 +598,7 @@
 
   $("startBtn").addEventListener("click", () => {
     try {
-      if (!selectedBedtimeDate) return;
+      if (!selectedBedtimeDate) { alert("Please choose a bedtime first."); return; }
       bedtimeDate = new Date(selectedBedtimeDate);
       queue = [...tasks];
       currentIndex = 0;
@@ -662,15 +702,53 @@
     speak("Tasks saved.");
   });
 
-  let selectedBedtimeDate=new Date();
-  selectedBedtimeDate.setMinutes(Math.ceil(selectedBedtimeDate.getMinutes()/15)*15,0,0);
-  function updateSelectedBedtime(){const text=new Intl.DateTimeFormat(undefined,{hour:"numeric",minute:"2-digit",hour12:true}).format(selectedBedtimeDate);$("selectedBedtime").textContent=text;$("selectedBedtime").setAttribute("aria-label",`Selected bedtime ${text}`);}
-  $("add15Btn").addEventListener("click",()=>{selectedBedtimeDate=new Date(selectedBedtimeDate.getTime()+15*60000);updateSelectedBedtime();});
-  $("addHourBtn").addEventListener("click",()=>{selectedBedtimeDate=new Date(selectedBedtimeDate.getTime()+60*60000);updateSelectedBedtime();});
-  updateSelectedBedtime();
+  let selectedBedtimeDate = null;
+
+  function formatSelectedBedtime(date) {
+    return new Intl.DateTimeFormat(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    }).format(date);
+  }
+
+  function buildFutureBedtime(hours, minutes) {
+    const now = new Date();
+    const date = new Date(now);
+    date.setHours(hours, minutes, 0, 0);
+    if (date <= now) date.setDate(date.getDate() + 1);
+    return date;
+  }
+
+  function setSelectedBedtime(date) {
+    selectedBedtimeDate = date;
+    const text = formatSelectedBedtime(date);
+    $("selectedBedtime").textContent = `Selected bedtime: ${text}`;
+    $("selectedBedtime").setAttribute("aria-label", `Selected bedtime ${text}`);
+  }
+
+  document.querySelectorAll(".bedtime-preset").forEach(button => {
+    button.addEventListener("click", () => {
+      const [hours, minutes] = button.dataset.time.split(":").map(Number);
+      setSelectedBedtime(buildFutureBedtime(hours, minutes));
+      $("otherTimeWrap").hidden = true;
+    });
+  });
+
+  $("otherTimeBtn").addEventListener("click", () => {
+    $("otherTimeWrap").hidden = false;
+    setTimeout(() => $("otherTimeInput").focus(), 50);
+  });
+
+  $("otherTimeInput").addEventListener("change", () => {
+    const value = $("otherTimeInput").value;
+    if (!value) return;
+    const [hours, minutes] = value.split(":").map(Number);
+    setSelectedBedtime(buildFutureBedtime(hours, minutes));
+  });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=14").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=15").catch(() => {});
   }
 })();
 </script>
