@@ -277,50 +277,16 @@
       }
     }
 
-</style>
+.simple-time-picker{text-align:center;margin:18px 0 24px}.selected-bedtime{font-size:clamp(46px,13vw,78px);font-weight:800;font-variant-numeric:tabular-nums;margin:12px 0 20px}.time-adjust-buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px}.time-adjust-buttons button{min-height:64px;font-size:20px;font-weight:800}@media(max-width:380px){.time-adjust-buttons{grid-template-columns:1fr}}</style>
 </head>
 <body>
 <main>
   <section id="setup">
     <h1>Good evening Maysa.</h1>
     <p class="bedtime-question">What time would you like to go to bed?</p>
-    <div class="wheel-picker" role="group" aria-label="Bedtime">
-      <div class="wheel-column">
-        <label for="hourWheel">Hour</label>
-        <div class="wheel-shell">
-          <button type="button" class="wheel-step" data-target="hourWheel" data-dir="-1" aria-label="Previous hour">▲</button>
-          <select id="hourWheel" size="3" aria-label="Hour"></select>
-          <button type="button" class="wheel-step" data-target="hourWheel" data-dir="1" aria-label="Next hour">▼</button>
-        </div>
-      </div>
-
-      <div class="wheel-separator" aria-hidden="true">:</div>
-
-      <div class="wheel-column">
-        <label for="minuteWheel">Minute</label>
-        <div class="wheel-shell">
-          <button type="button" class="wheel-step" data-target="minuteWheel" data-dir="-1" aria-label="Previous minute">▲</button>
-          <select id="minuteWheel" size="3" aria-label="Minute">
-            <option value="00">00</option>
-            <option value="15">15</option>
-            <option value="30">30</option>
-            <option value="45">45</option>
-          </select>
-          <button type="button" class="wheel-step" data-target="minuteWheel" data-dir="1" aria-label="Next minute">▼</button>
-        </div>
-      </div>
-
-      <div class="wheel-column">
-        <label for="ampmWheel">AM/PM</label>
-        <div class="wheel-shell">
-          <button type="button" class="wheel-step" data-target="ampmWheel" data-dir="-1" aria-label="Previous AM or PM">▲</button>
-          <select id="ampmWheel" size="2" aria-label="AM or PM">
-            <option value="AM">AM</option>
-            <option value="PM">PM</option>
-          </select>
-          <button type="button" class="wheel-step" data-target="ampmWheel" data-dir="1" aria-label="Next AM or PM">▼</button>
-        </div>
-      </div>
+    <div class="simple-time-picker" role="group" aria-label="Choose bedtime">
+      <div id="selectedBedtime" class="selected-bedtime" role="status" aria-live="polite">--:--</div>
+      <div class="time-adjust-buttons"><button type="button" id="add15Btn">+15 minutes</button><button type="button" id="addHourBtn">+1 hour</button></div>
     </div>
     <button id="startBtn" class="primary">Start routine</button>
     <button id="editBtn" class="secondary">Edit tasks</button>
@@ -532,13 +498,8 @@
 
   $("startBtn").addEventListener("click", () => {
     try {
-      const h12 = parseInt($("hourWheel").value, 10);
-      const minute = $("minuteWheel").value;
-      const ampm = $("ampmWheel").value;
-      let h24 = h12 % 12;
-      if (ampm === "PM") h24 += 12;
-      const value = `${String(h24).padStart(2, "0")}:${minute}`;
-      bedtimeDate = resolveBedtime(value);
+      if (!selectedBedtimeDate) return;
+      bedtimeDate = new Date(selectedBedtimeDate);
       queue = [...tasks];
       currentIndex = 0;
       saunaReady = null;
@@ -641,52 +602,15 @@
     speak("Tasks saved.");
   });
 
-  // Build wheel-style time picker and start at current time rounded up to the next 15 minutes.
-  const hourWheel = $("hourWheel");
-  for (let h = 1; h <= 12; h++) {
-    const option = document.createElement("option");
-    option.value = String(h);
-    option.textContent = String(h);
-    hourWheel.appendChild(option);
-  }
-
-  function setWheelIndex(select, nextIndex) {
-    const count = select.options.length;
-    const wrapped = (nextIndex + count) % count;
-    select.selectedIndex = wrapped;
-    select.dispatchEvent(new Event("change", { bubbles: true }));
-    if (select.options[wrapped]) {
-      select.options[wrapped].scrollIntoView({ block: "center" });
-    }
-  }
-
-  document.querySelectorAll(".wheel-step").forEach(button => {
-    button.addEventListener("click", () => {
-      const select = $(button.dataset.target);
-      const dir = Number(button.dataset.dir);
-      setWheelIndex(select, select.selectedIndex + dir);
-    });
-  });
-
-  const d = new Date();
-  const roundedMinutes = Math.ceil(d.getMinutes() / 15) * 15;
-  d.setMinutes(roundedMinutes, 0, 0);
-
-  const h24 = d.getHours();
-  const h12 = h24 % 12 || 12;
-  $("hourWheel").value = String(h12);
-  $("minuteWheel").value = String(d.getMinutes()).padStart(2, "0");
-  $("ampmWheel").value = h24 < 12 ? "AM" : "PM";
-
-  ["hourWheel", "minuteWheel", "ampmWheel"].forEach(id => {
-    const select = $(id);
-    if (select.selectedIndex >= 0 && select.options[select.selectedIndex]) {
-      setTimeout(() => select.options[select.selectedIndex].scrollIntoView({ block: "center" }), 0);
-    }
-  });
+  let selectedBedtimeDate=new Date();
+  selectedBedtimeDate.setMinutes(Math.ceil(selectedBedtimeDate.getMinutes()/15)*15,0,0);
+  function updateSelectedBedtime(){const text=new Intl.DateTimeFormat(undefined,{hour:"numeric",minute:"2-digit",hour12:true}).format(selectedBedtimeDate);$("selectedBedtime").textContent=text;$("selectedBedtime").setAttribute("aria-label",`Selected bedtime ${text}`);}
+  $("add15Btn").addEventListener("click",()=>{selectedBedtimeDate=new Date(selectedBedtimeDate.getTime()+15*60000);updateSelectedBedtime();});
+  $("addHourBtn").addEventListener("click",()=>{selectedBedtimeDate=new Date(selectedBedtimeDate.getTime()+60*60000);updateSelectedBedtime();});
+  updateSelectedBedtime();
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=10").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=11").catch(() => {});
   }
 })();
 </script>
