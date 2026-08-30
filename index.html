@@ -360,6 +360,30 @@
       font-weight: 700;
     }
 
+
+    /* v18: keep the countdown fully visible above Done/Skip */
+    #routine .task-content {
+      overflow: visible !important;
+      padding-bottom: 0 !important;
+    }
+
+    #routine .task-actions {
+      position: static !important;
+      bottom: auto !important;
+      z-index: auto !important;
+      margin-top: 22px;
+      padding-top: 0;
+      background: transparent;
+    }
+
+    #timeLeft {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 18px;
+      min-height: 92px;
+      flex-shrink: 0;
+    }
+
 </style>
 </head>
 <body>
@@ -763,7 +787,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=17").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=18").catch(() => {});
   }
 })();
 </script>
