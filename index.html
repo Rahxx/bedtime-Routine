@@ -371,7 +371,7 @@
 
       oscillator.type = "square";
       oscillator.frequency.setValueAtTime(900, now);
-      gain.gain.setValueAtTime(0.045, now);
+      gain.gain.setValueAtTime(0.35, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
 
       oscillator.connect(gain);
@@ -670,7 +670,7 @@
   updateSelectedBedtime();
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=13").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=14").catch(() => {});
   }
 })();
 </script>
