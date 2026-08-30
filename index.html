@@ -74,6 +74,18 @@
       border-radius: 18px;
       margin: 18px 0;
     }
+    .task-content {
+      min-height: 190px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .task-actions {
+      margin-top: 10px;
+    }
+    #taskHeading {
+      min-height: 86px;
+    }
     .progress { font-size: 18px; color: var(--muted); margin-bottom: 8px; }
     .time-left { font-size: 22px; color: #fff; margin: 12px 0 18px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -97,10 +109,10 @@
 <body>
 <main>
   <section id="setup">
-    <h1>Bedtime Routine</h1>
-    <label for="bedtime">What time do you want to go to bed?</label>
-    <input id="bedtime" type="time" aria-describedby="bedtimeHelp">
-    <p id="bedtimeHelp">If the chosen time has already passed today, it will be treated as tomorrow.</p>
+    <h1>Good evening Maysa.</h1>
+    <label for="bedtime">What time would you like to go to bed?</label>
+    <input id="bedtime" type="time" step="900" aria-describedby="bedtimeHelp">
+    <p id="bedtimeHelp">Choose a bedtime in 15-minute increments. If the chosen time has already passed today, it will be treated as tomorrow.</p>
     <button id="startBtn" class="primary">Start routine</button>
     <button id="editBtn" class="secondary">Edit tasks</button>
   </section>
@@ -108,18 +120,22 @@
   <section id="routine" class="hidden" aria-labelledby="taskHeading">
     <div class="progress" id="progress"></div>
     <div class="task">
-      <h2 id="taskHeading"></h2>
-      <div class="time-left" id="timeLeft"></div>
-      <button id="doneBtn" class="primary">Done</button>
-      <button id="skipBtn" class="skip">Skip</button>
+      <div class="task-content">
+        <h2 id="taskHeading" tabindex="-1"></h2>
+        <div class="time-left" id="timeLeft" aria-live="off"></div>
+      </div>
+      <div class="task-actions">
+        <button id="doneBtn" class="primary">Done</button>
+        <button id="skipBtn" class="skip">Skip</button>
+      </div>
     </div>
+    <button id="restartBtn" class="secondary">Restart routine</button>
     <button id="stopBtn" class="secondary">End routine</button>
   </section>
 
   <section id="complete" class="hidden">
-    <h1>Routine complete</h1>
-    <p id="completeText"></p>
-    <button id="againBtn" class="primary">Start again</button>
+    <h1 id="sleepHeading" tabindex="-1">Have a beautiful sleep Maysa.</h1>
+    <button id="againBtn" class="primary">Return to start</button>
   </section>
 
   <section id="editor" class="hidden">
@@ -160,6 +176,8 @@
   let currentIndex = 0;
   let bedtimeDate = null;
   let saunaReady = null;
+  let countdownTimer = null;
+  let advancing = false;
 
   const $ = id => document.getElementById(id);
   const screens = ["setup", "routine", "complete", "editor"];
@@ -194,7 +212,16 @@
     }
   }
 
+  function normalizeQuarterHour(value) {
+    const [h, m] = value.split(":").map(Number);
+    const rounded = Math.round(m / 15) * 15;
+    const d = new Date();
+    d.setHours(h, rounded, 0, 0);
+    return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  }
+
   function resolveBedtime(value) {
+    value = normalizeQuarterHour(value);
     const [h, m] = value.split(":").map(Number);
     const now = new Date();
     const target = new Date(now);
@@ -207,31 +234,61 @@
     if (!bedtimeDate) return "";
     const ms = bedtimeDate - new Date();
     const mins = Math.max(0, Math.ceil(ms / 60000));
-    if (mins === 0) return "It is bedtime now.";
-    if (mins === 1) return "1 minute remaining until bedtime.";
-    return `${mins} minutes remaining until bedtime.`;
+    if (mins === 0) return "Time remaining: Bedtime now.";
+    const hours = Math.floor(mins / 60);
+    const remainder = mins % 60;
+    if (hours > 0 && remainder > 0) return `Time remaining: ${hours} ${hours === 1 ? "hour" : "hours"} ${remainder} ${remainder === 1 ? "minute" : "minutes"}.`;
+    if (hours > 0) return `Time remaining: ${hours} ${hours === 1 ? "hour" : "hours"}.`;
+    return `Time remaining: ${mins} ${mins === 1 ? "minute" : "minutes"}.`;
   }
 
   function currentTask() { return queue[currentIndex] || null; }
 
-  function announceTask() {
+  function updateCountdown() {
+    if (bedtimeDate && !$("routine").classList.contains("hidden")) {
+      $("timeLeft").textContent = remainingText();
+    }
+  }
+
+  function startCountdown() {
+    if (countdownTimer) clearInterval(countdownTimer);
+    updateCountdown();
+    countdownTimer = setInterval(updateCountdown, 10000);
+  }
+
+  function announceTask(afterAction = false) {
     const task = currentTask();
     if (!task) return finishRoutine();
 
     // If Turn on sauna was skipped, Use sauna disappears automatically.
     if (task.toLowerCase() === "use sauna" && saunaReady === false) {
       currentIndex++;
-      return announceTask();
+      return announceTask(afterAction);
     }
 
+    const time = remainingText();
     $("taskHeading").textContent = task;
     $("progress").textContent = `Task ${currentIndex + 1} of ${queue.length}`;
-    $("timeLeft").textContent = remainingText();
-    speak(`${task}. ${remainingText()}`);
-    setTimeout(() => $("doneBtn").focus(), 50);
+    $("timeLeft").textContent = time;
+
+    // One uninterrupted utterance after Done/Skip.
+    if (afterAction) {
+      speak(`${time} Next task. ${task}.`);
+    } else {
+      speak(`${task}. ${time}`);
+    }
+
+    advancing = false;
+    $("doneBtn").disabled = false;
+    $("skipBtn").disabled = false;
+    setTimeout(() => $("taskHeading").focus(), 80);
   }
 
   function advance(result) {
+    if (advancing) return;
+    advancing = true;
+    $("doneBtn").disabled = true;
+    $("skipBtn").disabled = true;
     const task = currentTask();
     if (!task) return;
 
@@ -239,17 +296,17 @@
       saunaReady = result === "done";
     }
 
-    const time = remainingText();
-    speak(time);
     currentIndex++;
-    setTimeout(announceTask, 500);
+    announceTask(true);
   }
 
   function finishRoutine() {
-    const text = remainingText();
-    $("completeText").textContent = text || "All tasks are complete.";
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = null;
     show("complete");
-    speak(`Routine complete. ${text}`);
+    const message = "Have a beautiful sleep Maysa.";
+    speak(message);
+    setTimeout(() => $("sleepHeading").focus(), 80);
   }
 
   $("startBtn").addEventListener("click", () => {
@@ -260,11 +317,16 @@
         $("bedtime").focus();
         return;
       }
-      bedtimeDate = resolveBedtime(value);
+      const normalized = normalizeQuarterHour(value);
+      $("bedtime").value = normalized;
+      localStorage.setItem("lastBedtime", normalized);
+      bedtimeDate = resolveBedtime(normalized);
       queue = [...tasks];
       currentIndex = 0;
       saunaReady = null;
+      advancing = false;
       show("routine");
+      startCountdown();
       announceTask();
     } catch (err) {
       alert("The routine could not start: " + (err && err.message ? err.message : err));
@@ -273,7 +335,19 @@
 
   $("doneBtn").addEventListener("click", () => advance("done"));
   $("skipBtn").addEventListener("click", () => advance("skip"));
-  $("stopBtn").addEventListener("click", () => { if ("speechSynthesis" in window) window.window.speechSynthesis.cancel(); show("setup"); });
+  $("restartBtn").addEventListener("click", () => {
+    currentIndex = 0;
+    saunaReady = null;
+    advancing = false;
+    startCountdown();
+    announceTask();
+  });
+  $("stopBtn").addEventListener("click", () => {
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = null;
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    show("setup");
+  });
   $("againBtn").addEventListener("click", () => show("setup"));
 
   $("editBtn").addEventListener("click", () => {
@@ -349,10 +423,15 @@
     speak("Tasks saved.");
   });
 
-  // Default bedtime to one hour from now, rounded to the next 5 minutes.
-  const d = new Date(Date.now() + 60 * 60000);
-  d.setMinutes(Math.ceil(d.getMinutes() / 5) * 5, 0, 0);
-  $("bedtime").value = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  // Remember the last bedtime; otherwise default to about one hour from now on a 15-minute boundary.
+  const lastBedtime = localStorage.getItem("lastBedtime");
+  if (lastBedtime) {
+    $("bedtime").value = lastBedtime;
+  } else {
+    const d = new Date(Date.now() + 60 * 60000);
+    d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
+    $("bedtime").value = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  }
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
