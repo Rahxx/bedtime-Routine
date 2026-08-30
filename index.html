@@ -222,7 +222,7 @@
       <span class="time-separator" aria-hidden="true">:</span>
       <div>
         <label for="bedtimeMinute">Minute</label>
-        <select id="bedtimeMinute">
+        <select id="bedtimeMinute" aria-label="Minute. Choices are 00, 15, 30, or 45.">
           <option value="00">00</option>
           <option value="15">15</option>
           <option value="30">30</option>
@@ -373,7 +373,7 @@
   function updateCountdown() {
     if (bedtimeDate && !$("routine").classList.contains("hidden")) {
       $("timeLeft").textContent = displayRemainingText();
-      $("timeLeft").setAttribute("aria-label", remainingText());
+      $("timeLeft").setAttribute("aria-label", `Digital countdown ${displayRemainingText()}`);
     }
   }
 
@@ -398,7 +398,7 @@
     $("taskHeading").textContent = task;
     $("progress").textContent = `Task ${currentIndex + 1} of ${queue.length}`;
     $("timeLeft").textContent = displayRemainingText();
-    $("timeLeft").setAttribute("aria-label", time);
+    $("timeLeft").setAttribute("aria-label", `Digital countdown ${displayRemainingText()}`);
 
     // One uninterrupted utterance after Done/Skip.
     if (afterAction) {
@@ -440,14 +440,8 @@
 
   $("startBtn").addEventListener("click", () => {
     try {
-      const value = $("bedtime").value;
-      if (!value) {
-        speak("Choose a bedtime first.");
-        $("bedtime").focus();
-        return;
-      }
-      const normalized = normalizeQuarterHour(value);
-      bedtimeDate = resolveBedtime(normalized);
+      const value = `${$("bedtimeHour").value}:${$("bedtimeMinute").value}`;
+      bedtimeDate = resolveBedtime(value);
       queue = [...tasks];
       currentIndex = 0;
       saunaReady = null;
@@ -567,7 +561,7 @@
   $("bedtimeMinute").value = String(d.getMinutes()).padStart(2, "0");
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=9").catch(() => {});
   }
 })();
 </script>
