@@ -314,8 +314,39 @@
       margin: 18px 0;
     }
 
-    #otherTimeBtn {
+    .other-time-control {
       grid-column: 1 / -1;
+      position: relative;
+      min-height: 56px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--button, #222);
+      border: 1px solid var(--border, #555);
+    }
+
+    .other-time-label {
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      font-weight: 700;
+      pointer-events: none;
+    }
+
+    .other-time-control input[type="time"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.01;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .other-time-control:focus-within {
+      outline: 3px solid currentColor;
+      outline-offset: 2px;
     }
 
     .preset-bedtimes button {
@@ -323,20 +354,7 @@
       font-size: 1.15rem;
       font-weight: 700;
     }
-
-    #otherTimeWrap {
-      margin: 14px 0;
-    }
-
-    #otherTimeInput {
-      width: 100%;
-      min-height: 52px;
-      font-size: 1.1rem;
-      margin-top: 8px;
-      box-sizing: border-box;
-    }
-
-    #selectedBedtime {
+#selectedBedtime {
       margin: 14px 0 18px;
       text-align: center;
       font-weight: 700;
@@ -354,11 +372,10 @@
       <button type="button" class="bedtime-preset" data-time="22:30">10:30 PM</button>
       <button type="button" class="bedtime-preset" data-time="23:00">11:00 PM</button>
       <button type="button" class="bedtime-preset" data-time="23:30">11:30 PM</button>
-      <button type="button" id="otherTimeBtn">Other time</button>
-    </div>
-    <div id="otherTimeWrap" hidden>
-      <label for="otherTimeInput">Choose another bedtime</label>
-      <input id="otherTimeInput" type="time" step="900">
+      <div class="other-time-control">
+        <span class="other-time-label" aria-hidden="true">Other time</span>
+        <input id="otherTimeInput" type="time" step="900" aria-label="Other time">
+      </div>
     </div>
     <div id="selectedBedtime" class="selected-bedtime" role="status" aria-live="polite">No bedtime selected</div>
     <button id="startBtn" class="primary">Start routine</button>
@@ -735,25 +752,7 @@
     button.addEventListener("click", () => {
       const [hours, minutes] = button.dataset.time.split(":").map(Number);
       setSelectedBedtime(buildFutureBedtime(hours, minutes));
-      $("otherTimeWrap").hidden = true;
     });
-  });
-
-  $("otherTimeBtn").addEventListener("click", () => {
-    const input = $("otherTimeInput");
-    $("otherTimeWrap").hidden = false;
-
-    try {
-      if (typeof input.showPicker === "function") {
-        input.showPicker();
-      } else {
-        input.focus();
-        input.click();
-      }
-    } catch (_) {
-      input.focus();
-      input.click();
-    }
   });
 
   $("otherTimeInput").addEventListener("change", () => {
@@ -764,7 +763,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=16").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=17").catch(() => {});
   }
 })();
 </script>
