@@ -391,6 +391,97 @@
 .selected-bedtime-time{font-size:clamp(48px,14vw,76px);line-height:1;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;white-space:nowrap}
 .preset-bedtimes button,.other-time-control{border:2px solid #fff !important;box-shadow:0 0 0 1px rgba(255,255,255,.22)}
 .preset-bedtimes button:focus-visible,.other-time-control:focus-within{outline:3px solid #fff;outline-offset:3px}
+
+/* v20 GUI optimisations */
+#progress {
+  font-size: .9rem;
+  opacity: .82;
+  margin-bottom: 8px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255,255,255,.16);
+  margin: 0 0 18px;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: #35a7ff;
+  border-radius: inherit;
+  transition: width 180ms ease;
+}
+
+#taskHeading {
+  font-size: clamp(1.65rem, 6vw, 2.3rem);
+  line-height: 1.18;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+#timeLeft {
+  font-size: clamp(2.15rem, 10vw, 3.7rem) !important;
+  line-height: 1 !important;
+  font-weight: 800;
+  min-height: 68px !important;
+  margin-bottom: 18px !important;
+  white-space: nowrap;
+}
+
+#routine .task-actions {
+  display: block !important;
+}
+
+#doneBtn {
+  width: 100%;
+  min-height: 64px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.secondary-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+#skipBtn,
+#laterBtn {
+  min-height: 58px;
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+
+#skipBtn {
+  background: #fff200 !important;
+  color: #000 !important;
+  border: 2px solid #fff !important;
+}
+
+#laterBtn {
+  background: #168bff !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+}
+
+.move-feedback {
+  min-height: 1.2em;
+  margin: 2px 0 8px;
+  text-align: center;
+  font-size: .95rem;
+  font-weight: 700;
+  opacity: 0;
+}
+
+.move-feedback.show {
+  opacity: 1;
+}
+
 </style>
 </head>
 <body>
@@ -418,14 +509,19 @@
 
   <section id="routine" class="hidden" aria-labelledby="taskHeading">
     <div class="progress" id="progress"></div>
+    <div class="progress-track" aria-hidden="true"><div id="progressBar" class="progress-bar"></div></div>
     <div class="task">
       <div class="task-content">
         <h2 id="taskHeading" tabindex="-1"></h2>
+        <div id="moveFeedback" class="move-feedback" role="status" aria-live="polite"></div>
         <div class="time-left" id="timeLeft" aria-live="off"></div>
       </div>
       <div class="task-actions">
         <button id="doneBtn" class="primary">Done</button>
-        <button id="skipBtn" class="skip">Skip</button>
+        <div class="secondary-actions">
+          <button id="skipBtn" class="skip">Skip</button>
+          <button id="laterBtn" class="later" aria-label="Do later, moves this task two tasks later">Do Later</button>
+        </div>
       </div>
     </div>
     <button id="restartBtn" class="secondary">Restart routine</button>
@@ -491,8 +587,8 @@
     "Take out rubbish and change bin bag",
     "Turn on jug",
     "Refresh Tamara’s water",
-    "Give Tamara her greenie",
     "Toilet Tamara",
+    "Give Tamara her greenie",
     "Make a cup of tea",
     "Turn off heater, TV, radio and lights",
     "Pack work, judo and gym bag",
@@ -506,6 +602,7 @@
   let currentIndex = 0;
   let bedtimeDate = null;
   let saunaReady = null;
+  let jugReady = null;
   let countdownTimer = null;
   let advancing = false;
 
@@ -530,6 +627,21 @@
   function saveTasks() {
     localStorage.setItem("bedtimeTasks", JSON.stringify(tasks));
   }
+
+  // Keep existing users on the updated default Tamara ordering unless they have
+  // substantially customised the list.
+  const oldTamaraOrder = ["Refresh Tamara’s water", "Give Tamara her greenie", "Toilet Tamara"];
+  const newTamaraOrder = ["Refresh Tamara’s water", "Toilet Tamara", "Give Tamara her greenie"];
+  const tamaraStart = tasks.findIndex((task, i) =>
+    task === oldTamaraOrder[0] &&
+    tasks[i + 1] === oldTamaraOrder[1] &&
+    tasks[i + 2] === oldTamaraOrder[2]
+  );
+  if (tamaraStart !== -1) {
+    tasks.splice(tamaraStart, 3, ...newTamaraOrder);
+    saveTasks();
+  }
+
 
   function speak(text) {
     $("live").textContent = "";
@@ -577,10 +689,7 @@
   function displayRemainingText() {
     const ms = bedtimeDate - new Date();
     const mins = Math.max(0, Math.ceil(ms / 60000));
-    if (mins === 0) return "00:00";
-    const hours = Math.floor(mins / 60);
-    const remainder = mins % 60;
-    return `${String(hours).padStart(2,"0")}:${String(remainder).padStart(2,"0")}`;
+    return `${mins} min`;
   }
 
   function updateCountdown() {
@@ -601,8 +710,12 @@
     const task = currentTask();
     if (!task) return finishRoutine();
 
-    // If Turn on sauna was skipped, Use sauna disappears automatically.
+    // Dependent tasks disappear when their setup task was skipped.
     if (task.toLowerCase() === "use sauna" && saunaReady === false) {
+      currentIndex++;
+      return announceTask(afterAction);
+    }
+    if (task.toLowerCase() === "make a cup of tea" && jugReady === false) {
       currentIndex++;
       return announceTask(afterAction);
     }
@@ -610,10 +723,10 @@
     const time = remainingText();
     $("taskHeading").textContent = task;
     $("progress").textContent = `Task ${currentIndex + 1} of ${queue.length}`;
+    $("progressBar").style.width = `${Math.min(100, ((currentIndex + 1) / queue.length) * 100)}%`;
     $("timeLeft").textContent = displayRemainingText();
-    $("timeLeft").setAttribute("aria-label", `Digital countdown ${displayRemainingText()}`);
+    $("timeLeft").setAttribute("aria-label", remainingText().replace("Time remaining: ", ""));
 
-    // One uninterrupted utterance after Done/Skip.
     if (afterAction) {
       speak(`Next task. ${task}. ${time}`);
     } else {
@@ -623,6 +736,7 @@
     advancing = false;
     $("doneBtn").disabled = false;
     $("skipBtn").disabled = false;
+    $("laterBtn").disabled = false;
     setTimeout(() => $("taskHeading").focus(), 80);
   }
 
@@ -631,11 +745,15 @@
     advancing = true;
     $("doneBtn").disabled = true;
     $("skipBtn").disabled = true;
+    $("laterBtn").disabled = true;
     const task = currentTask();
     if (!task) return;
 
     if (task.toLowerCase() === "turn on sauna") {
       saunaReady = result === "done";
+    }
+    if (task.toLowerCase() === "turn on jug") {
+      jugReady = result === "done";
     }
 
     currentIndex++;
@@ -658,6 +776,7 @@
       queue = [...tasks];
       currentIndex = 0;
       saunaReady = null;
+      jugReady = null;
       advancing = false;
       show("routine");
       startCountdown();
@@ -669,9 +788,42 @@
 
   $("doneBtn").addEventListener("click", () => advance("done"));
   $("skipBtn").addEventListener("click", () => advance("skip"));
+  $("laterBtn").addEventListener("click", () => {
+    if (advancing) return;
+    const task = currentTask();
+    if (!task) return;
+
+    advancing = true;
+    $("doneBtn").disabled = true;
+    $("skipBtn").disabled = true;
+    $("laterBtn").disabled = true;
+
+    const [movedTask] = queue.splice(currentIndex, 1);
+    const targetIndex = Math.min(currentIndex + 2, queue.length);
+    queue.splice(targetIndex, 0, movedTask);
+
+    const feedback = $("moveFeedback");
+    feedback.textContent = "Moved 2 tasks later";
+    feedback.classList.add("show");
+
+    const nextTask = currentTask();
+    const time = remainingText();
+    if (nextTask) {
+      speak(`${movedTask} moved two tasks later. Next task. ${nextTask}. ${time}`);
+    } else {
+      speak(`${movedTask} moved two tasks later.`);
+    }
+
+    setTimeout(() => {
+      feedback.classList.remove("show");
+      feedback.textContent = "";
+      announceTask(false);
+    }, 500);
+  });
   $("restartBtn").addEventListener("click", () => {
     currentIndex = 0;
     saunaReady = null;
+    jugReady = null;
     advancing = false;
     startCountdown();
     announceTask();
@@ -797,7 +949,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=19").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=20").catch(() => {});
   }
 })();
 </script>
