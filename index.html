@@ -104,7 +104,65 @@
       height: 1px;
       overflow: hidden;
     }
-  </style>
+  
+    .primary {
+      background: #00ff3c !important;
+      color: #000 !important;
+      border: 3px solid #fff !important;
+      font-weight: 800;
+    }
+    .skip {
+      background: #fff200 !important;
+      color: #000 !important;
+      border: 3px solid #fff !important;
+      font-weight: 800;
+    }
+
+    #routine {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+    #routine.hidden {
+      display: none !important;
+    }
+    #routine .task {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    #routine .task-content {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-bottom: 16px;
+    }
+    #routine .task-actions {
+      flex: 0 0 auto;
+      position: sticky;
+      bottom: 0;
+      background: var(--panel);
+      padding-top: 12px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      z-index: 5;
+    }
+
+    #timeLeft {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(32px, 8vw, 54px);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-align: center;
+      padding: 14px 12px;
+      margin: 14px 0 8px;
+      border: 2px solid var(--line);
+      border-radius: 14px;
+      background: #050505;
+      color: #ffffff;
+    }
+</style>
 </head>
 <body>
 <main>
@@ -244,9 +302,19 @@
 
   function currentTask() { return queue[currentIndex] || null; }
 
+  function displayRemainingText() {
+    const ms = bedtimeDate - new Date();
+    const mins = Math.max(0, Math.ceil(ms / 60000));
+    if (mins === 0) return "00:00";
+    const hours = Math.floor(mins / 60);
+    const remainder = mins % 60;
+    return `${String(hours).padStart(2,"0")}:${String(remainder).padStart(2,"0")}`;
+  }
+
   function updateCountdown() {
     if (bedtimeDate && !$("routine").classList.contains("hidden")) {
-      $("timeLeft").textContent = remainingText();
+      $("timeLeft").textContent = displayRemainingText();
+      $("timeLeft").setAttribute("aria-label", remainingText());
     }
   }
 
@@ -273,7 +341,7 @@
 
     // One uninterrupted utterance after Done/Skip.
     if (afterAction) {
-      speak(`${time} Next task. ${task}.`);
+      speak(`Next task. ${task}. ${time}`);
     } else {
       speak(`${task}. ${time}`);
     }
