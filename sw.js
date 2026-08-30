@@ -1,4 +1,4 @@
-const CACHE = "bedtime-routine-v12";
+const CACHE = "bedtime-routine-v13";
 const STATIC_ASSETS = ["./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", event => {

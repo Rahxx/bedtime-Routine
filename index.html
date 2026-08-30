@@ -355,6 +355,37 @@
 </main>
 
 <script>
+
+  // Short confirmation click for every button press.
+  let clickAudioContext = null;
+  function playButtonClick() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!clickAudioContext) clickAudioContext = new AudioCtx();
+      if (clickAudioContext.state === "suspended") clickAudioContext.resume();
+
+      const now = clickAudioContext.currentTime;
+      const oscillator = clickAudioContext.createOscillator();
+      const gain = clickAudioContext.createGain();
+
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(900, now);
+      gain.gain.setValueAtTime(0.045, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+
+      oscillator.connect(gain);
+      gain.connect(clickAudioContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.025);
+    } catch (_) {}
+  }
+
+  document.addEventListener("click", event => {
+    if (event.target.closest("button")) playButtonClick();
+  }, true);
+
+
 (() => {
   const DEFAULT_TASKS = [
     "Close shutters and check doors and gate are locked",
@@ -639,7 +670,7 @@
   updateSelectedBedtime();
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=12").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=13").catch(() => {});
   }
 })();
 </script>
