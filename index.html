@@ -151,7 +151,7 @@
     #timeLeft {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       font-variant-numeric: tabular-nums;
-      font-size: clamp(52px, 14vw, 88px);
+      font-size: clamp(44px, 11vw, 72px);
       font-weight: 800;
       letter-spacing: 0.04em;
       text-align: center;
@@ -277,7 +277,36 @@
       }
     }
 
-.simple-time-picker{text-align:center;margin:18px 0 24px}.selected-bedtime{font-size:clamp(46px,13vw,78px);font-weight:800;font-variant-numeric:tabular-nums;margin:12px 0 20px}.time-adjust-buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px}.time-adjust-buttons button{min-height:64px;font-size:20px;font-weight:800}@media(max-width:380px){.time-adjust-buttons{grid-template-columns:1fr}}</style>
+.simple-time-picker{text-align:center;margin:18px 0 24px}.selected-bedtime{font-size:clamp(46px,13vw,78px);font-weight:800;font-variant-numeric:tabular-nums;margin:12px 0 20px}.time-adjust-buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px}.time-adjust-buttons button{min-height:64px;font-size:20px;font-weight:800}@media(max-width:380px){.time-adjust-buttons{grid-template-columns:1fr}}
+    #timeLeft {
+      white-space: nowrap;
+      line-height: 1;
+      min-height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #routine .task-content {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding-bottom: 20px;
+    }
+    #routine .task-actions {
+      flex: 0 0 auto;
+      position: sticky;
+      bottom: 0;
+      background: var(--panel);
+      padding-top: 14px;
+      padding-bottom: max(14px, env(safe-area-inset-bottom));
+      z-index: 10;
+    }
+    #routine .task-actions button {
+      margin-bottom: 12px;
+    }
+
+</style>
 </head>
 <body>
 <main>
@@ -610,7 +639,7 @@
   updateSelectedBedtime();
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=11").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=12").catch(() => {});
   }
 })();
 </script>
