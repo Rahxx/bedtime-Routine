@@ -151,7 +151,7 @@
     #timeLeft {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       font-variant-numeric: tabular-nums;
-      font-size: clamp(32px, 8vw, 54px);
+      font-size: clamp(52px, 14vw, 88px);
       font-weight: 800;
       letter-spacing: 0.04em;
       text-align: center;
@@ -162,6 +162,10 @@
       background: #050505;
       color: #ffffff;
     }
+
+    h1, h2, h3 {
+      text-align: center;
+    }
 </style>
 </head>
 <body>
@@ -169,8 +173,7 @@
   <section id="setup">
     <h1>Good evening Maysa.</h1>
     <label for="bedtime">What time would you like to go to bed?</label>
-    <input id="bedtime" type="time" step="900" aria-describedby="bedtimeHelp">
-    <p id="bedtimeHelp">Choose a bedtime in 15-minute increments. If the chosen time has already passed today, it will be treated as tomorrow.</p>
+    <input id="bedtime" type="time" step="900">
     <button id="startBtn" class="primary">Start routine</button>
     <button id="editBtn" class="secondary">Edit tasks</button>
   </section>
@@ -387,7 +390,6 @@
       }
       const normalized = normalizeQuarterHour(value);
       $("bedtime").value = normalized;
-      localStorage.setItem("lastBedtime", normalized);
       bedtimeDate = resolveBedtime(normalized);
       queue = [...tasks];
       currentIndex = 0;
@@ -491,15 +493,11 @@
     speak("Tasks saved.");
   });
 
-  // Remember the last bedtime; otherwise default to about one hour from now on a 15-minute boundary.
-  const lastBedtime = localStorage.getItem("lastBedtime");
-  if (lastBedtime) {
-    $("bedtime").value = lastBedtime;
-  } else {
-    const d = new Date(Date.now() + 60 * 60000);
-    d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
-    $("bedtime").value = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-  }
+  // Start at the current time, rounded up to the next 15-minute increment.
+  const d = new Date();
+  const roundedMinutes = Math.ceil(d.getMinutes() / 15) * 15;
+  d.setMinutes(roundedMinutes, 0, 0);
+  $("bedtime").value = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
