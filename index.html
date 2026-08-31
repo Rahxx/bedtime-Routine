@@ -482,6 +482,70 @@
   opacity: 1;
 }
 
+
+/* v23 voice settings */
+.voice-settings {
+  margin: 22px 0 18px;
+  padding: 16px;
+  border: 2px solid rgba(255,255,255,.7);
+  border-radius: 16px;
+}
+
+.voice-settings-heading {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+.voice-toggle,
+.voice-preview,
+.voice-select {
+  width: 100%;
+  min-height: 56px;
+  font-size: 1.05rem;
+}
+
+.voice-toggle {
+  margin-bottom: 14px;
+  border: 2px solid #fff !important;
+}
+
+.voice-toggle[aria-pressed="true"] {
+  background: #1faa59 !important;
+  color: #fff !important;
+}
+
+.voice-toggle[aria-pressed="false"] {
+  background: #555 !important;
+  color: #fff !important;
+}
+
+.voice-label {
+  display: block;
+  margin: 4px 0 7px;
+  font-weight: 700;
+}
+
+.voice-select {
+  padding: 0 12px;
+  border: 2px solid #fff;
+  border-radius: 12px;
+  background: #111;
+  color: #fff;
+}
+
+.voice-count {
+  min-height: 1.4em;
+  margin: 7px 0 12px;
+  font-size: .9rem;
+  opacity: .82;
+  text-align: center;
+}
+
+.voice-preview {
+  border: 2px solid #fff !important;
+}
+
 </style>
 </head>
 <body>
@@ -503,6 +567,17 @@
         <input id="otherTimeInput" type="time" step="900" aria-label="Other time">
       </div>
     </div>
+    <div class="voice-settings" aria-labelledby="voiceSettingsHeading">
+      <h2 id="voiceSettingsHeading" class="voice-settings-heading">Voice announcements</h2>
+      <button type="button" id="voiceToggleBtn" class="voice-toggle" aria-pressed="true">Voice announcements: On</button>
+
+      <label for="voiceSelect" class="voice-label">Voice</label>
+      <select id="voiceSelect" class="voice-select" aria-describedby="voiceCount"></select>
+      <div id="voiceCount" class="voice-count" role="status" aria-live="polite">Loading voices…</div>
+
+      <button type="button" id="previewVoiceBtn" class="voice-preview">Preview voice</button>
+    </div>
+
     <button id="startBtn" class="primary">Start routine</button>
     <button id="editBtn" class="secondary">Edit tasks</button>
   </section>
@@ -643,14 +718,20 @@
   }
 
 
+  let voiceAnnouncementsEnabled = localStorage.getItem("voiceAnnouncementsEnabled") !== "false";
+  let selectedVoiceURI = localStorage.getItem("selectedVoiceURI") || "";
+  let availableEnglishVoices = [];
+
   let activeUtterance = null;
   let speechTimer = null;
 
   function speak(text) {
-    // Keep the VoiceOver live-region announcement as a fallback.
+    if (!voiceAnnouncementsEnabled) return;
+
+    // Keep the VoiceOver live-region announcement as a fallback while announcements are on.
     $("live").textContent = "";
     setTimeout(() => {
-      $("live").textContent = text;
+      if (voiceAnnouncementsEnabled) $("live").textContent = text;
     }, 20);
 
     if (!("speechSynthesis" in window)) return;
@@ -662,12 +743,18 @@
 
     window.speechSynthesis.cancel();
 
-    // iPhone Safari is more reliable when there is a short pause after cancel()
-    // and when the utterance is kept in a persistent variable.
     speechTimer = setTimeout(() => {
+      if (!voiceAnnouncementsEnabled) return;
+
       activeUtterance = new SpeechSynthesisUtterance(text);
       activeUtterance.rate = 0.95;
       activeUtterance.volume = 1;
+
+      const selectedVoice = availableEnglishVoices.find(v => v.voiceURI === selectedVoiceURI);
+      if (selectedVoice) {
+        activeUtterance.voice = selectedVoice;
+        activeUtterance.lang = selectedVoice.lang;
+      }
 
       activeUtterance.onend = () => {
         activeUtterance = null;
@@ -818,6 +905,92 @@
       alert("The routine could not start: " + (err && err.message ? err.message : err));
     }
   });
+
+
+  function updateVoiceControls() {
+    $("voiceToggleBtn").setAttribute("aria-pressed", voiceAnnouncementsEnabled ? "true" : "false");
+    $("voiceToggleBtn").textContent = `Voice announcements: ${voiceAnnouncementsEnabled ? "On" : "Off"}`;
+    $("voiceSelect").disabled = !voiceAnnouncementsEnabled || availableEnglishVoices.length === 0;
+    $("previewVoiceBtn").disabled = !voiceAnnouncementsEnabled || availableEnglishVoices.length === 0;
+  }
+
+  function loadVoices() {
+    if (!("speechSynthesis" in window)) {
+      availableEnglishVoices = [];
+      $("voiceSelect").innerHTML = "";
+      $("voiceCount").textContent = "Speech voices are not available in this browser.";
+      updateVoiceControls();
+      return;
+    }
+
+    const voices = window.speechSynthesis.getVoices();
+    availableEnglishVoices = voices
+      .filter(v => /^en(?:-|_)/i.test(v.lang))
+      .sort((a, b) => {
+        const langCompare = a.lang.localeCompare(b.lang);
+        if (langCompare !== 0) return langCompare;
+        return a.name.localeCompare(b.name);
+      });
+
+    const select = $("voiceSelect");
+    select.innerHTML = "";
+
+    availableEnglishVoices.forEach((voice, index) => {
+      const option = document.createElement("option");
+      option.value = voice.voiceURI;
+      option.textContent = `${voice.name} — ${voice.lang}`;
+      select.appendChild(option);
+    });
+
+    if (availableEnglishVoices.length) {
+      const savedStillExists = availableEnglishVoices.some(v => v.voiceURI === selectedVoiceURI);
+      if (!savedStillExists) {
+        const defaultVoice = availableEnglishVoices.find(v => v.default) || availableEnglishVoices[0];
+        selectedVoiceURI = defaultVoice.voiceURI;
+        localStorage.setItem("selectedVoiceURI", selectedVoiceURI);
+      }
+      select.value = selectedVoiceURI;
+    }
+
+    const count = availableEnglishVoices.length;
+    $("voiceCount").textContent = `${count} English ${count === 1 ? "voice" : "voices"} available on this device.`;
+    updateVoiceControls();
+  }
+
+  $("voiceToggleBtn").addEventListener("click", () => {
+    voiceAnnouncementsEnabled = !voiceAnnouncementsEnabled;
+    localStorage.setItem("voiceAnnouncementsEnabled", voiceAnnouncementsEnabled ? "true" : "false");
+
+    if (!voiceAnnouncementsEnabled) {
+      if (speechTimer) {
+        clearTimeout(speechTimer);
+        speechTimer = null;
+      }
+      activeUtterance = null;
+      $("live").textContent = "";
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    updateVoiceControls();
+  });
+
+  $("voiceSelect").addEventListener("change", () => {
+    selectedVoiceURI = $("voiceSelect").value;
+    localStorage.setItem("selectedVoiceURI", selectedVoiceURI);
+  });
+
+  $("previewVoiceBtn").addEventListener("click", () => {
+    speak("This is the selected bedtime routine voice.");
+  });
+
+  if ("speechSynthesis" in window) {
+    loadVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    setTimeout(loadVoices, 250);
+    setTimeout(loadVoices, 1000);
+  } else {
+    loadVoices();
+  }
 
   $("doneBtn").addEventListener("click", () => advance("done"));
   $("skipBtn").addEventListener("click", () => advance("skip"));
@@ -981,7 +1154,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=22").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=23").catch(() => {});
   }
 })();
 </script>
