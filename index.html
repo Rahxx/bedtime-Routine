@@ -567,7 +567,11 @@
         <input id="otherTimeInput" type="time" step="900" aria-label="Other time">
       </div>
     </div>
-    <div class="voice-settings" aria-labelledby="voiceSettingsHeading">
+
+    <button id="startBtn" class="primary">Start routine</button>
+    <button id="editBtn" class="secondary">Edit tasks</button>
+  
+<div class="voice-settings" aria-labelledby="voiceSettingsHeading">
       <h2 id="voiceSettingsHeading" class="voice-settings-heading">Voice announcements</h2>
       <button type="button" id="voiceToggleBtn" class="voice-toggle" aria-pressed="true">Voice announcements: On</button>
 
@@ -577,9 +581,6 @@
 
       <button type="button" id="previewVoiceBtn" class="voice-preview">Preview voice</button>
     </div>
-
-    <button id="startBtn" class="primary">Start routine</button>
-    <button id="editBtn" class="secondary">Edit tasks</button>
   </section>
 
   <section id="routine" class="hidden" aria-labelledby="taskHeading">
@@ -1154,7 +1155,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=23").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=24").catch(() => {});
   }
 })();
 </script>
