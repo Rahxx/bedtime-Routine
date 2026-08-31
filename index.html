@@ -643,15 +643,44 @@
   }
 
 
+  let activeUtterance = null;
+  let speechTimer = null;
+
   function speak(text) {
+    // Keep the VoiceOver live-region announcement as a fallback.
     $("live").textContent = "";
-    setTimeout(() => $("live").textContent = text, 20);
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.95;
-      window.speechSynthesis.speak(u);
+    setTimeout(() => {
+      $("live").textContent = text;
+    }, 20);
+
+    if (!("speechSynthesis" in window)) return;
+
+    if (speechTimer) {
+      clearTimeout(speechTimer);
+      speechTimer = null;
     }
+
+    window.speechSynthesis.cancel();
+
+    // iPhone Safari is more reliable when there is a short pause after cancel()
+    // and when the utterance is kept in a persistent variable.
+    speechTimer = setTimeout(() => {
+      activeUtterance = new SpeechSynthesisUtterance(text);
+      activeUtterance.rate = 0.95;
+      activeUtterance.volume = 1;
+
+      activeUtterance.onend = () => {
+        activeUtterance = null;
+      };
+
+      activeUtterance.onerror = () => {
+        activeUtterance = null;
+      };
+
+      window.speechSynthesis.resume();
+      window.speechSynthesis.speak(activeUtterance);
+      speechTimer = null;
+    }, 90);
   }
 
   function normalizeQuarterHour(value) {
@@ -829,6 +858,11 @@
   $("stopBtn").addEventListener("click", () => {
     if (countdownTimer) clearInterval(countdownTimer);
     countdownTimer = null;
+    if (speechTimer) {
+      clearTimeout(speechTimer);
+      speechTimer = null;
+    }
+    activeUtterance = null;
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     show("setup");
   });
@@ -947,7 +981,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=21").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=22").catch(() => {});
   }
 })();
 </script>
