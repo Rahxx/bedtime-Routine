@@ -546,6 +546,15 @@
   border: 2px solid #fff !important;
 }
 
+
+/* v26 rounded digital countdown */
+#timeLeft {
+  font-family: "Arial Rounded MT Bold", "SF Pro Rounded", "Helvetica Rounded", Arial, sans-serif !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .015em;
+  border-radius: 18px;
+}
+
 </style>
 </head>
 <body>
@@ -1155,7 +1164,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=25").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=26").catch(() => {});
   }
 })();
 </script>
