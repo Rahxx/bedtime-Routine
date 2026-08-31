@@ -748,7 +748,7 @@
       if (!voiceAnnouncementsEnabled) return;
 
       activeUtterance = new SpeechSynthesisUtterance(text);
-      activeUtterance.rate = 0.95;
+      activeUtterance.rate = 1.05;
       activeUtterance.volume = 1;
 
       const selectedVoice = availableEnglishVoices.find(v => v.voiceURI === selectedVoiceURI);
@@ -1155,7 +1155,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=24").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=25").catch(() => {});
   }
 })();
 </script>
