@@ -35,7 +35,7 @@
     main { max-width: 680px; margin: 0 auto; padding: 24px 18px 48px; }
     h1 { font-size: 34px; margin: 0 0 22px; }
     h2 { font-size: 30px; margin: 0 0 14px; }
-    p { margin: 8px 0 18px; color: var(--muted); }
+    p { margin: 0 0 18px; color: var(--muted); }
     label { display: block; font-weight: 700; margin-bottom: 10px; }
     input, button {
       font: inherit;
@@ -314,39 +314,8 @@
       margin: 18px 0;
     }
 
-    .other-time-control {
+    #otherTimeBtn {
       grid-column: 1 / -1;
-      position: relative;
-      min-height: 56px;
-      border-radius: 12px;
-      overflow: hidden;
-      background: var(--button, #222);
-      border: 1px solid var(--border, #555);
-    }
-
-    .other-time-label {
-      min-height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.15rem;
-      font-weight: 700;
-      pointer-events: none;
-    }
-
-    .other-time-control input[type="time"] {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.01;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    .other-time-control:focus-within {
-      outline: 3px solid currentColor;
-      outline-offset: 2px;
     }
 
     .preset-bedtimes button {
@@ -354,281 +323,24 @@
       font-size: 1.15rem;
       font-weight: 700;
     }
-#selectedBedtime {
+
+    #otherTimeWrap {
+      margin: 14px 0;
+    }
+
+    #otherTimeInput {
+      width: 100%;
+      min-height: 52px;
+      font-size: 1.1rem;
+      margin-top: 8px;
+      box-sizing: border-box;
+    }
+
+    #selectedBedtime {
       margin: 14px 0 18px;
       text-align: center;
       font-weight: 700;
     }
-
-
-    /* v18: keep the countdown fully visible above Done/Skip */
-    #routine .task-content {
-      overflow: visible !important;
-      padding-bottom: 0 !important;
-    }
-
-    #routine .task-actions {
-      position: static !important;
-      bottom: auto !important;
-      z-index: auto !important;
-      margin-top: 22px;
-      padding-top: 0;
-      background: transparent;
-    }
-
-    #timeLeft {
-      position: relative;
-      z-index: 1;
-      margin-bottom: 18px;
-      min-height: 92px;
-      flex-shrink: 0;
-    }
-
-
-/* v19 */
-#selectedBedtime{margin:12px 0 20px;text-align:center}
-.selected-bedtime-label{font-size:.82rem;font-weight:600;opacity:.78;margin-bottom:4px}
-.selected-bedtime-time{font-size:clamp(48px,14vw,76px);line-height:1;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;white-space:nowrap}
-.preset-bedtimes button,.other-time-control{border:2px solid #fff !important;box-shadow:0 0 0 1px rgba(255,255,255,.22)}
-.preset-bedtimes button:focus-visible,.other-time-control:focus-within{outline:3px solid #fff;outline-offset:3px}
-
-/* v20 GUI optimisations */
-#progress {
-  font-size: .9rem;
-  opacity: .82;
-  margin-bottom: 8px;
-}
-
-.progress-track {
-  width: 100%;
-  height: 8px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: rgba(255,255,255,.16);
-  margin: 0 0 18px;
-}
-
-.progress-bar {
-  height: 100%;
-  width: 0%;
-  background: #35a7ff;
-  border-radius: inherit;
-  transition: width 180ms ease;
-}
-
-#taskHeading {
-  font-size: clamp(1.65rem, 6vw, 2.3rem);
-  line-height: 1.18;
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-
-#timeLeft {
-  font-size: clamp(2.15rem, 10vw, 3.7rem) !important;
-  line-height: 1 !important;
-  font-weight: 800;
-  min-height: 68px !important;
-  margin-bottom: 18px !important;
-  white-space: nowrap;
-}
-
-#routine .task-actions {
-  display: block !important;
-}
-
-#doneBtn {
-  width: 100%;
-  min-height: 64px;
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-
-.secondary-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-#skipBtn,
-#laterBtn {
-  min-height: 58px;
-  font-size: 1.08rem;
-  font-weight: 800;
-}
-
-#skipBtn {
-  background: #fff200 !important;
-  color: #000 !important;
-  border: 2px solid #fff !important;
-}
-
-#laterBtn {
-  background: #168bff !important;
-  color: #fff !important;
-  border: 2px solid #fff !important;
-}
-
-.move-feedback {
-  min-height: 1.2em;
-  margin: 2px 0 8px;
-  text-align: center;
-  font-size: .95rem;
-  font-weight: 700;
-  opacity: 0;
-}
-
-.move-feedback.show {
-  opacity: 1;
-}
-
-
-/* v23 voice settings */
-.voice-settings {
-  margin: 22px 0 18px;
-  padding: 16px;
-  border: 2px solid rgba(255,255,255,.7);
-  border-radius: 16px;
-}
-
-.voice-settings-heading {
-  margin: 0 0 12px;
-  font-size: 1.15rem;
-  text-align: center;
-}
-
-.voice-toggle,
-.voice-preview,
-.voice-select {
-  width: 100%;
-  min-height: 56px;
-  font-size: 1.05rem;
-}
-
-.voice-toggle {
-  margin-bottom: 14px;
-  border: 2px solid #fff !important;
-}
-
-.voice-toggle[aria-pressed="true"] {
-  background: #1faa59 !important;
-  color: #fff !important;
-}
-
-.voice-toggle[aria-pressed="false"] {
-  background: #555 !important;
-  color: #fff !important;
-}
-
-.voice-label {
-  display: block;
-  margin: 4px 0 7px;
-  font-weight: 700;
-}
-
-.voice-select {
-  padding: 0 12px;
-  border: 2px solid #fff;
-  border-radius: 12px;
-  background: #111;
-  color: #fff;
-}
-
-.voice-count {
-  min-height: 1.4em;
-  margin: 7px 0 12px;
-  font-size: .9rem;
-  opacity: .82;
-  text-align: center;
-}
-
-.voice-preview {
-  border: 2px solid #fff !important;
-}
-
-
-/* v26 rounded digital countdown */
-#timeLeft {
-  font-family: "Arial Rounded MT Bold", "SF Pro Rounded", "Helvetica Rounded", Arial, sans-serif !important;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: .015em;
-  border-radius: 18px;
-}
-
-
-/* v27 dominant countdown */
-#timeLeft {
-  font-size: clamp(5rem, 25vw, 9rem) !important;
-  line-height: .92 !important;
-  font-weight: 900 !important;
-  min-height: 120px !important;
-  margin: 18px 0 24px !important;
-  text-align: center;
-  width: 100%;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-
-/* v28 keep all routine controls on screen */
-#routine {
-  min-height: 100dvh !important;
-  height: 100dvh !important;
-  box-sizing: border-box;
-  overflow: hidden !important;
-}
-
-#routine .task {
-  min-height: 0 !important;
-  height: calc(100dvh - 150px) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  box-sizing: border-box;
-}
-
-#routine .task-content {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
-}
-
-#taskHeading {
-  margin-top: 0 !important;
-  margin-bottom: 8px !important;
-}
-
-#timeLeft {
-  font-size: clamp(4.5rem, 23vw, 8.5rem) !important;
-  min-height: 0 !important;
-  margin: 8px 0 14px !important;
-}
-
-.progress-track {
-  margin: 6px 0 14px !important;
-  flex-shrink: 0;
-}
-
-#routine .task-actions {
-  flex: 0 0 auto !important;
-  margin-top: 0 !important;
-  padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
-}
-
-#doneBtn {
-  min-height: 58px !important;
-  margin-bottom: 10px !important;
-}
-
-#skipBtn,
-#laterBtn {
-  min-height: 54px !important;
-}
-
-.secondary-actions {
-  gap: 10px !important;
-}
 
 </style>
 </head>
@@ -637,34 +349,20 @@
   <section id="setup">
     <h1>Good evening Maysa.</h1>
     <p class="bedtime-question">What time would you like to go to bed?</p>
-    <div id="selectedBedtime" class="selected-bedtime" role="status" aria-live="polite">
-      <div class="selected-bedtime-label">Selected bedtime</div>
-      <div id="selectedBedtimeTime" class="selected-bedtime-time">--:--</div>
-    </div>
     <div class="preset-bedtimes" role="group" aria-label="Choose bedtime">
       <button type="button" class="bedtime-preset" data-time="22:00">10:00 PM</button>
       <button type="button" class="bedtime-preset" data-time="22:30">10:30 PM</button>
       <button type="button" class="bedtime-preset" data-time="23:00">11:00 PM</button>
       <button type="button" class="bedtime-preset" data-time="23:30">11:30 PM</button>
-      <div class="other-time-control">
-        <span class="other-time-label" aria-hidden="true">Other time</span>
-        <input id="otherTimeInput" type="time" step="900" aria-label="Other time">
-      </div>
+      <button type="button" id="otherTimeBtn">Other time</button>
     </div>
-
+    <div id="otherTimeWrap" hidden>
+      <label for="otherTimeInput">Choose another bedtime</label>
+      <input id="otherTimeInput" type="time" step="900">
+    </div>
+    <div id="selectedBedtime" class="selected-bedtime" role="status" aria-live="polite">No bedtime selected</div>
     <button id="startBtn" class="primary">Start routine</button>
     <button id="editBtn" class="secondary">Edit tasks</button>
-  
-<div class="voice-settings" aria-labelledby="voiceSettingsHeading">
-      <h2 id="voiceSettingsHeading" class="voice-settings-heading">Voice announcements</h2>
-      <button type="button" id="voiceToggleBtn" class="voice-toggle" aria-pressed="true">Voice announcements: On</button>
-
-      <label for="voiceSelect" class="voice-label">Voice</label>
-      <select id="voiceSelect" class="voice-select" aria-describedby="voiceCount"></select>
-      <div id="voiceCount" class="voice-count" role="status" aria-live="polite">Loading voices…</div>
-
-      <button type="button" id="previewVoiceBtn" class="voice-preview">Preview voice</button>
-    </div>
   </section>
 
   <section id="routine" class="hidden" aria-labelledby="taskHeading">
@@ -672,16 +370,11 @@
     <div class="task">
       <div class="task-content">
         <h2 id="taskHeading" tabindex="-1"></h2>
-        <div id="moveFeedback" class="move-feedback" role="status" aria-live="polite"></div>
         <div class="time-left" id="timeLeft" aria-live="off"></div>
-        <div class="progress-track" aria-hidden="true"><div id="progressBar" class="progress-bar"></div></div>
       </div>
       <div class="task-actions">
         <button id="doneBtn" class="primary">Done</button>
-        <div class="secondary-actions">
-          <button id="skipBtn" class="skip">Skip</button>
-          <button id="laterBtn" class="later" aria-label="Do later, moves this task two tasks later">Do Later</button>
-        </div>
+        <button id="skipBtn" class="skip">Skip</button>
       </div>
     </div>
     <button id="restartBtn" class="secondary">Restart routine</button>
@@ -747,8 +440,8 @@
     "Take out rubbish and change bin bag",
     "Turn on jug",
     "Refresh Tamara’s water",
-    "Toilet Tamara",
     "Give Tamara her greenie",
+    "Toilet Tamara",
     "Make a cup of tea",
     "Turn off heater, TV, radio and lights",
     "Pack work, judo and gym bag",
@@ -762,7 +455,6 @@
   let currentIndex = 0;
   let bedtimeDate = null;
   let saunaReady = null;
-  let jugReady = null;
   let countdownTimer = null;
   let advancing = false;
 
@@ -788,71 +480,15 @@
     localStorage.setItem("bedtimeTasks", JSON.stringify(tasks));
   }
 
-  // Keep existing users on the updated default Tamara ordering unless they have
-  // substantially customised the list.
-  const oldTamaraOrder = ["Refresh Tamara’s water", "Give Tamara her greenie", "Toilet Tamara"];
-  const newTamaraOrder = ["Refresh Tamara’s water", "Toilet Tamara", "Give Tamara her greenie"];
-  const tamaraStart = tasks.findIndex((task, i) =>
-    task === oldTamaraOrder[0] &&
-    tasks[i + 1] === oldTamaraOrder[1] &&
-    tasks[i + 2] === oldTamaraOrder[2]
-  );
-  if (tamaraStart !== -1) {
-    tasks.splice(tamaraStart, 3, ...newTamaraOrder);
-    saveTasks();
-  }
-
-
-  let voiceAnnouncementsEnabled = localStorage.getItem("voiceAnnouncementsEnabled") !== "false";
-  let selectedVoiceURI = localStorage.getItem("selectedVoiceURI") || "";
-  let availableEnglishVoices = [];
-
-  let activeUtterance = null;
-  let speechTimer = null;
-
   function speak(text) {
-    if (!voiceAnnouncementsEnabled) return;
-
-    // Keep the VoiceOver live-region announcement as a fallback while announcements are on.
     $("live").textContent = "";
-    setTimeout(() => {
-      if (voiceAnnouncementsEnabled) $("live").textContent = text;
-    }, 20);
-
-    if (!("speechSynthesis" in window)) return;
-
-    if (speechTimer) {
-      clearTimeout(speechTimer);
-      speechTimer = null;
+    setTimeout(() => $("live").textContent = text, 20);
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.95;
+      window.speechSynthesis.speak(u);
     }
-
-    window.speechSynthesis.cancel();
-
-    speechTimer = setTimeout(() => {
-      if (!voiceAnnouncementsEnabled) return;
-
-      activeUtterance = new SpeechSynthesisUtterance(text);
-      activeUtterance.rate = 1.05;
-      activeUtterance.volume = 1;
-
-      const selectedVoice = availableEnglishVoices.find(v => v.voiceURI === selectedVoiceURI);
-      if (selectedVoice) {
-        activeUtterance.voice = selectedVoice;
-        activeUtterance.lang = selectedVoice.lang;
-      }
-
-      activeUtterance.onend = () => {
-        activeUtterance = null;
-      };
-
-      activeUtterance.onerror = () => {
-        activeUtterance = null;
-      };
-
-      window.speechSynthesis.resume();
-      window.speechSynthesis.speak(activeUtterance);
-      speechTimer = null;
-    }, 90);
   }
 
   function normalizeQuarterHour(value) {
@@ -890,6 +526,7 @@
   function displayRemainingText() {
     const ms = bedtimeDate - new Date();
     const mins = Math.max(0, Math.ceil(ms / 60000));
+    if (mins === 0) return "00:00";
     const hours = Math.floor(mins / 60);
     const remainder = mins % 60;
     return `${String(hours).padStart(2,"0")}:${String(remainder).padStart(2,"0")}`;
@@ -908,31 +545,25 @@
     countdownTimer = setInterval(updateCountdown, 10000);
   }
 
-  function announceTask(afterAction = false, speechPrefix = "") {
+  function announceTask(afterAction = false) {
     updateCountdown();
     const task = currentTask();
     if (!task) return finishRoutine();
 
-    // Dependent tasks disappear when their setup task was skipped.
+    // If Turn on sauna was skipped, Use sauna disappears automatically.
     if (task.toLowerCase() === "use sauna" && saunaReady === false) {
       currentIndex++;
-      return announceTask(afterAction, speechPrefix);
-    }
-    if (task.toLowerCase() === "make a cup of tea" && jugReady === false) {
-      currentIndex++;
-      return announceTask(afterAction, speechPrefix);
+      return announceTask(afterAction);
     }
 
     const time = remainingText();
     $("taskHeading").textContent = task;
     $("progress").textContent = `Task ${currentIndex + 1} of ${queue.length}`;
-    $("progressBar").style.width = `${Math.min(100, ((currentIndex + 1) / queue.length) * 100)}%`;
     $("timeLeft").textContent = displayRemainingText();
-    $("timeLeft").setAttribute("aria-label", remainingText().replace("Time remaining: ", ""));
+    $("timeLeft").setAttribute("aria-label", `Digital countdown ${displayRemainingText()}`);
 
-    if (speechPrefix) {
-      speak(`${speechPrefix} Next task. ${task}. ${time}`);
-    } else if (afterAction) {
+    // One uninterrupted utterance after Done/Skip.
+    if (afterAction) {
       speak(`Next task. ${task}. ${time}`);
     } else {
       speak(`${task}. ${time}`);
@@ -941,7 +572,6 @@
     advancing = false;
     $("doneBtn").disabled = false;
     $("skipBtn").disabled = false;
-    $("laterBtn").disabled = false;
     setTimeout(() => $("taskHeading").focus(), 80);
   }
 
@@ -950,15 +580,11 @@
     advancing = true;
     $("doneBtn").disabled = true;
     $("skipBtn").disabled = true;
-    $("laterBtn").disabled = true;
     const task = currentTask();
     if (!task) return;
 
     if (task.toLowerCase() === "turn on sauna") {
       saunaReady = result === "done";
-    }
-    if (task.toLowerCase() === "turn on jug") {
-      jugReady = result === "done";
     }
 
     currentIndex++;
@@ -981,7 +607,6 @@
       queue = [...tasks];
       currentIndex = 0;
       saunaReady = null;
-      jugReady = null;
       advancing = false;
       show("routine");
       startCountdown();
@@ -991,124 +616,11 @@
     }
   });
 
-
-  function updateVoiceControls() {
-    $("voiceToggleBtn").setAttribute("aria-pressed", voiceAnnouncementsEnabled ? "true" : "false");
-    $("voiceToggleBtn").textContent = `Voice announcements: ${voiceAnnouncementsEnabled ? "On" : "Off"}`;
-    $("voiceSelect").disabled = !voiceAnnouncementsEnabled || availableEnglishVoices.length === 0;
-    $("previewVoiceBtn").disabled = !voiceAnnouncementsEnabled || availableEnglishVoices.length === 0;
-  }
-
-  function loadVoices() {
-    if (!("speechSynthesis" in window)) {
-      availableEnglishVoices = [];
-      $("voiceSelect").innerHTML = "";
-      $("voiceCount").textContent = "Speech voices are not available in this browser.";
-      updateVoiceControls();
-      return;
-    }
-
-    const voices = window.speechSynthesis.getVoices();
-    availableEnglishVoices = voices
-      .filter(v => /^en(?:-|_)/i.test(v.lang))
-      .sort((a, b) => {
-        const langCompare = a.lang.localeCompare(b.lang);
-        if (langCompare !== 0) return langCompare;
-        return a.name.localeCompare(b.name);
-      });
-
-    const select = $("voiceSelect");
-    select.innerHTML = "";
-
-    availableEnglishVoices.forEach((voice, index) => {
-      const option = document.createElement("option");
-      option.value = voice.voiceURI;
-      option.textContent = `${voice.name} — ${voice.lang}`;
-      select.appendChild(option);
-    });
-
-    if (availableEnglishVoices.length) {
-      const savedStillExists = availableEnglishVoices.some(v => v.voiceURI === selectedVoiceURI);
-      if (!savedStillExists) {
-        const defaultVoice = availableEnglishVoices.find(v => v.default) || availableEnglishVoices[0];
-        selectedVoiceURI = defaultVoice.voiceURI;
-        localStorage.setItem("selectedVoiceURI", selectedVoiceURI);
-      }
-      select.value = selectedVoiceURI;
-    }
-
-    const count = availableEnglishVoices.length;
-    $("voiceCount").textContent = `${count} English ${count === 1 ? "voice" : "voices"} available on this device.`;
-    updateVoiceControls();
-  }
-
-  $("voiceToggleBtn").addEventListener("click", () => {
-    voiceAnnouncementsEnabled = !voiceAnnouncementsEnabled;
-    localStorage.setItem("voiceAnnouncementsEnabled", voiceAnnouncementsEnabled ? "true" : "false");
-
-    if (!voiceAnnouncementsEnabled) {
-      if (speechTimer) {
-        clearTimeout(speechTimer);
-        speechTimer = null;
-      }
-      activeUtterance = null;
-      $("live").textContent = "";
-      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-    }
-
-    updateVoiceControls();
-  });
-
-  $("voiceSelect").addEventListener("change", () => {
-    selectedVoiceURI = $("voiceSelect").value;
-    localStorage.setItem("selectedVoiceURI", selectedVoiceURI);
-  });
-
-  $("previewVoiceBtn").addEventListener("click", () => {
-    speak("This is the selected bedtime routine voice.");
-  });
-
-  if ("speechSynthesis" in window) {
-    loadVoices();
-    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
-    setTimeout(loadVoices, 250);
-    setTimeout(loadVoices, 1000);
-  } else {
-    loadVoices();
-  }
-
   $("doneBtn").addEventListener("click", () => advance("done"));
   $("skipBtn").addEventListener("click", () => advance("skip"));
-  $("laterBtn").addEventListener("click", () => {
-    if (advancing) return;
-    const task = currentTask();
-    if (!task) return;
-
-    advancing = true;
-    $("doneBtn").disabled = true;
-    $("skipBtn").disabled = true;
-    $("laterBtn").disabled = true;
-
-    const [movedTask] = queue.splice(currentIndex, 1);
-    const targetIndex = Math.min(currentIndex + 2, queue.length);
-    queue.splice(targetIndex, 0, movedTask);
-
-    const feedback = $("moveFeedback");
-    feedback.textContent = "Moved 2 tasks later";
-    feedback.classList.add("show");
-
-    // One complete announcement, so it cannot be cut off by the next task speech.
-    announceTask(true, `${movedTask} moved two tasks later.`);
-
-    setTimeout(() => {
-      feedback.classList.remove("show");
-      feedback.textContent = "";
-    }, 1800);
-  });
   $("restartBtn").addEventListener("click", () => {
     currentIndex = 0;
     saunaReady = null;
-    jugReady = null;
     advancing = false;
     startCountdown();
     announceTask();
@@ -1116,11 +628,6 @@
   $("stopBtn").addEventListener("click", () => {
     if (countdownTimer) clearInterval(countdownTimer);
     countdownTimer = null;
-    if (speechTimer) {
-      clearTimeout(speechTimer);
-      speechTimer = null;
-    }
-    activeUtterance = null;
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     show("setup");
   });
@@ -1220,7 +727,7 @@
   function setSelectedBedtime(date) {
     selectedBedtimeDate = date;
     const text = formatSelectedBedtime(date);
-    $("selectedBedtimeTime").textContent = text;
+    $("selectedBedtime").textContent = `Selected bedtime: ${text}`;
     $("selectedBedtime").setAttribute("aria-label", `Selected bedtime ${text}`);
   }
 
@@ -1228,7 +735,25 @@
     button.addEventListener("click", () => {
       const [hours, minutes] = button.dataset.time.split(":").map(Number);
       setSelectedBedtime(buildFutureBedtime(hours, minutes));
+      $("otherTimeWrap").hidden = true;
     });
+  });
+
+  $("otherTimeBtn").addEventListener("click", () => {
+    const input = $("otherTimeInput");
+    $("otherTimeWrap").hidden = false;
+
+    try {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+      } else {
+        input.focus();
+        input.click();
+      }
+    } catch (_) {
+      input.focus();
+      input.click();
+    }
   });
 
   $("otherTimeInput").addEventListener("change", () => {
@@ -1239,7 +764,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=28").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=16").catch(() => {});
   }
 })();
 </script>
