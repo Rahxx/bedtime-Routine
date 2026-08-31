@@ -35,7 +35,7 @@
     main { max-width: 680px; margin: 0 auto; padding: 24px 18px 48px; }
     h1 { font-size: 34px; margin: 0 0 22px; }
     h2 { font-size: 30px; margin: 0 0 14px; }
-    p { margin: 0 0 18px; color: var(--muted); }
+    p { margin: 8px 0 18px; color: var(--muted); }
     label { display: block; font-weight: 700; margin-bottom: 10px; }
     input, button {
       font: inherit;
@@ -509,12 +509,12 @@
 
   <section id="routine" class="hidden" aria-labelledby="taskHeading">
     <div class="progress" id="progress"></div>
-    <div class="progress-track" aria-hidden="true"><div id="progressBar" class="progress-bar"></div></div>
     <div class="task">
       <div class="task-content">
         <h2 id="taskHeading" tabindex="-1"></h2>
         <div id="moveFeedback" class="move-feedback" role="status" aria-live="polite"></div>
         <div class="time-left" id="timeLeft" aria-live="off"></div>
+        <div class="progress-track" aria-hidden="true"><div id="progressBar" class="progress-bar"></div></div>
       </div>
       <div class="task-actions">
         <button id="doneBtn" class="primary">Done</button>
@@ -689,7 +689,9 @@
   function displayRemainingText() {
     const ms = bedtimeDate - new Date();
     const mins = Math.max(0, Math.ceil(ms / 60000));
-    return `${mins} min`;
+    const hours = Math.floor(mins / 60);
+    const remainder = mins % 60;
+    return `${String(hours).padStart(2,"0")}:${String(remainder).padStart(2,"0")}`;
   }
 
   function updateCountdown() {
@@ -705,7 +707,7 @@
     countdownTimer = setInterval(updateCountdown, 10000);
   }
 
-  function announceTask(afterAction = false) {
+  function announceTask(afterAction = false, speechPrefix = "") {
     updateCountdown();
     const task = currentTask();
     if (!task) return finishRoutine();
@@ -713,11 +715,11 @@
     // Dependent tasks disappear when their setup task was skipped.
     if (task.toLowerCase() === "use sauna" && saunaReady === false) {
       currentIndex++;
-      return announceTask(afterAction);
+      return announceTask(afterAction, speechPrefix);
     }
     if (task.toLowerCase() === "make a cup of tea" && jugReady === false) {
       currentIndex++;
-      return announceTask(afterAction);
+      return announceTask(afterAction, speechPrefix);
     }
 
     const time = remainingText();
@@ -727,7 +729,9 @@
     $("timeLeft").textContent = displayRemainingText();
     $("timeLeft").setAttribute("aria-label", remainingText().replace("Time remaining: ", ""));
 
-    if (afterAction) {
+    if (speechPrefix) {
+      speak(`${speechPrefix} Next task. ${task}. ${time}`);
+    } else if (afterAction) {
       speak(`Next task. ${task}. ${time}`);
     } else {
       speak(`${task}. ${time}`);
@@ -806,19 +810,13 @@
     feedback.textContent = "Moved 2 tasks later";
     feedback.classList.add("show");
 
-    const nextTask = currentTask();
-    const time = remainingText();
-    if (nextTask) {
-      speak(`${movedTask} moved two tasks later. Next task. ${nextTask}. ${time}`);
-    } else {
-      speak(`${movedTask} moved two tasks later.`);
-    }
+    // One complete announcement, so it cannot be cut off by the next task speech.
+    announceTask(true, `${movedTask} moved two tasks later.`);
 
     setTimeout(() => {
       feedback.classList.remove("show");
       feedback.textContent = "";
-      announceTask(false);
-    }, 500);
+    }, 1800);
   });
   $("restartBtn").addEventListener("click", () => {
     currentIndex = 0;
@@ -949,7 +947,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=20").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=21").catch(() => {});
   }
 })();
 </script>
