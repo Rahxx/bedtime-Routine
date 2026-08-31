@@ -569,6 +569,67 @@
   font-variant-numeric: tabular-nums;
 }
 
+
+/* v28 keep all routine controls on screen */
+#routine {
+  min-height: 100dvh !important;
+  height: 100dvh !important;
+  box-sizing: border-box;
+  overflow: hidden !important;
+}
+
+#routine .task {
+  min-height: 0 !important;
+  height: calc(100dvh - 150px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box;
+}
+
+#routine .task-content {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+#taskHeading {
+  margin-top: 0 !important;
+  margin-bottom: 8px !important;
+}
+
+#timeLeft {
+  font-size: clamp(4.5rem, 23vw, 8.5rem) !important;
+  min-height: 0 !important;
+  margin: 8px 0 14px !important;
+}
+
+.progress-track {
+  margin: 6px 0 14px !important;
+  flex-shrink: 0;
+}
+
+#routine .task-actions {
+  flex: 0 0 auto !important;
+  margin-top: 0 !important;
+  padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
+}
+
+#doneBtn {
+  min-height: 58px !important;
+  margin-bottom: 10px !important;
+}
+
+#skipBtn,
+#laterBtn {
+  min-height: 54px !important;
+}
+
+.secondary-actions {
+  gap: 10px !important;
+}
+
 </style>
 </head>
 <body>
@@ -1178,7 +1239,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=27").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=28").catch(() => {});
   }
 })();
 </script>
