@@ -555,6 +555,20 @@
   border-radius: 18px;
 }
 
+
+/* v27 dominant countdown */
+#timeLeft {
+  font-size: clamp(5rem, 25vw, 9rem) !important;
+  line-height: .92 !important;
+  font-weight: 900 !important;
+  min-height: 120px !important;
+  margin: 18px 0 24px !important;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 </style>
 </head>
 <body>
@@ -1164,7 +1178,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=26").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=27").catch(() => {});
   }
 })();
 </script>
