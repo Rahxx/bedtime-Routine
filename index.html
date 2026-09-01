@@ -579,6 +579,17 @@
   border-radius: 10px;
 }
 
+
+/* selected bedtime preset highlight */
+.preset-btn.selected,
+.preset-time.selected,
+button[data-time].selected {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.35) !important;
+}
+
 </style>
 </head>
 <body>
@@ -1194,9 +1205,34 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=28").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=29").catch(() => {});
   }
 })();
+
+function highlightSelectedPreset(selectedButton) {
+  document.querySelectorAll('.preset-btn, .preset-time, button[data-time]').forEach(button => {
+    button.classList.remove('selected');
+    button.setAttribute('aria-pressed', 'false');
+  });
+  if (selectedButton) {
+    selectedButton.classList.add('selected');
+    selectedButton.setAttribute('aria-pressed', 'true');
+  }
+}
+
+
+document.addEventListener("click", event => {
+  const button = event.target.closest('.preset-btn, .preset-time, button[data-time]');
+  if (!button) return;
+  highlightSelectedPreset(button);
+});
+
+
+const otherTimeInput = document.querySelector('input[type="time"]');
+if (otherTimeInput) {
+  otherTimeInput.addEventListener("change", () => highlightSelectedPreset(null));
+}
+
 </script>
 </body>
 </html>
