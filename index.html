@@ -555,6 +555,30 @@
   border-radius: 18px;
 }
 
+
+/* repeat-announcement task button */
+#taskHeading.task-repeat {
+  display: block;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: clamp(1.65rem, 6vw, 2.3rem);
+  line-height: 1.18;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: none;
+}
+#taskHeading.task-repeat:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
 </style>
 </head>
 <body>
@@ -596,7 +620,7 @@
     <div class="progress" id="progress"></div>
     <div class="task">
       <div class="task-content">
-        <h2 id="taskHeading" tabindex="-1"></h2>
+        <button type="button" id="taskHeading" class="task-repeat" aria-label="Repeat task announcement"></button>
         <div id="moveFeedback" class="move-feedback" role="status" aria-live="polite"></div>
         <div class="time-left" id="timeLeft" aria-live="off"></div>
         <div class="progress-track" aria-hidden="true"><div id="progressBar" class="progress-bar"></div></div>
@@ -1004,6 +1028,12 @@
 
   $("doneBtn").addEventListener("click", () => advance("done"));
   $("skipBtn").addEventListener("click", () => advance("skip"));
+  $("taskHeading").addEventListener("click", () => {
+    const task = currentTask();
+    if (!task) return;
+    speak(`${task}. ${remainingText()}`);
+  });
+
   $("laterBtn").addEventListener("click", () => {
     if (advancing) return;
     const task = currentTask();
@@ -1164,7 +1194,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=26").catch(() => {});
+    navigator.serviceWorker.register("sw.js?v=27").catch(() => {});
   }
 })();
 </script>
